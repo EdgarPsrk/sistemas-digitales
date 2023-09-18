@@ -1,24 +1,3 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 09/11/2023 09:51:08 PM
--- Design Name: 
--- Module Name: doorlock - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
@@ -93,9 +72,6 @@ output:
                 elsif (current_state = q3) or (current_state = q6) then
                     pass <= '0';
                     fail <= '1';
-                --else
-                    --pass <= '0';
-                    --fail <= '0';
                 end if;
             end if;
     end process output;

@@ -31,13 +31,21 @@
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{3pt}
+%\renewcommand{\headrule}{\color{lineCabecera}\hrulefill}
 \renewcommand{\headrule}{\hbox to \headwidth{\color{lineCabecera}\leaders\hrule height \headrulewidth\hfill}}
 
 %variables globales
 \newcommand{\esquema}{img/esq.jpg}
-\newcommand{\var}{img/variables.jpeg}
-\newcommand{\imga}{img/diagrama.png}
-\newcommand{\imgb}{img/diagrama2.png}
+\newcommand{\var}{img/jflap.png}
+\newcommand{\imgA}{img/dt1.png}
+\newcommand{\imgB}{img/dt2.png}
+\newcommand{\codeA}{code/clock_pulse.vhd}
+\newcommand{\codeB}{code/debounce.vhd}
+\newcommand{\codeC}{code/doorlock.vhd}
+\newcommand{\codeD}{code/frequency_divider.vhd}
+\newcommand{\codeE}{code/system.vhd}
+
+
 
 %gestion de hipervinculos
 \hypersetup{
@@ -86,7 +94,7 @@
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=\textwidth]{\esquema}
+        \includegraphics[width=\textwidth,keepaspectratio]{\esquema}
         \caption{Esquematico del sistema}
         \label{fig:top-level}
     \end{figure}
@@ -109,236 +117,26 @@
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=\textwidth]{\imgb}
+        \includegraphics[width=\textwidth]{\imgB}
         \caption{Señales de salida}
         \label{fig:signal}
     \end{figure} 
 
     \section*{Apéndice B: Codigo VHDL}
-    Código del módulo sumador
-    \begin{lstlisting}[language=VHDL]
-        library IEEE;
-        use IEEE.STD_LOGIC_1164.ALL;
-        use IEEE.STD_LOGIC_UNSIGNED.ALL;
+    Código del módulo con pulsos de reloj verificados
+    \lstinputlisting[language=VHDL]{\codeA}
 
-        entity bcd_adder is
-            port(
-                a, b : in std_logic_vector (3 downto 0);
-                c_in : in std_logic;
-                s : out std_logic_vector (4 downto 0)
-            );
-        end bcd_adder;
+    Código del módulo eliminador de la señal de rebote de los botones
+    \lstinputlisting[language=VHDL]{\codeB}
 
-        architecture Behavioral of bcd_adder is
-            signal sum : std_logic_vector (4 downto 0);
-        begin
-            sum <= ('0' & a) + ('0' & b) + ("0000" & c_in);
-            s <= sum when sum < 10 else sum + 6;
-        end Behavioral;
-    \end{lstlisting}
+    Código del módulo de la maquina de estados
+    \lstinputlisting[language=VHDL]{\codeC}
 
-    Código del módulo restador
-    \begin{lstlisting}[language=VHDL]
-        library IEEE;
-        use IEEE.STD_LOGIC_1164.ALL;
-        use IEEE.STD_LOGIC_UNSIGNED.ALL;
+    Código del módulo preescaler
+    \lstinputlisting[language=VHDL]{\codeD}
 
-        entity bcd_subtractor is
-            port(
-                a, b : in std_logic_vector(7 downto 0);
-                s : out std_logic_vector (8 downto 0)
-            );
-        end bcd_subtractor;
+    Código del módulo top conjuntador de módulos
+    \lstinputlisting[language=VHDL]{\codeE}
 
-        architecture Behavioral of bcd_subtractor is
-            signal sub, sub_aux: std_logic_vector(8 downto 0);
-            signal s0, s1 : std_logic_vector(3 downto 0);
-        begin
-            sub <= ('0' & a) - ('0' & b);
-            sub_aux <= sub when sub(8) = '0' else ('0' & not(sub(7 downto 0))) + 1;
-            s0 <= sub_aux(3 downto 0);
-            s1 <= sub_aux(7 downto 4);
-            s(8) <= sub(8);
-            s(3 downto 0) <= s0 when s0 < 10 else s0 + 10;
-            s(7 downto 4) <= s1 when s1 < 10 else s1 + 10;
-        end Behavioral;
-    \end{lstlisting}
-
-    Código del módulo comparador
-    \begin{lstlisting}[language=VHDL]
-        library IEEE;
-        use IEEE.STD_LOGIC_1164.ALL;
-        
-        entity comparator is
-            port(
-                a, b : in std_logic_vector (3 downto 0);
-                l, e, g : out std_logic
-            );
-        end comparator;
-        
-        architecture Behavioral of comparator is
-        
-        begin
-            l <= '1' when a < b else '0';
-            e <= '1' when a = b else '0';
-            g <= '1' when a > b else '0';
-        end Behavioral;
-    \end{lstlisting}
-
-    Código del módulo codificador BCD a 7 segmentos
-    \begin{lstlisting}[language=VHDL]
-        library IEEE;
-        use IEEE.STD_LOGIC_1164.ALL;
-        
-        entity bcd_to_7seg is
-            port(
-                bcd : in std_logic_vector (3 downto 0);
-                segments : out std_logic_vector (6 downto 0) -- G F E D C B A
-            );
-        end bcd_to_7seg;
-        
-        architecture Behavioral of bcd_to_7seg is
-        
-        begin
-            with bcd select
-                segments <= "1000000" when "0000",
-                            "1111001" when "0001",
-                            "0100100" when "0010",
-                            "0110000" when "0011",
-                            "0011001" when "0100",
-                            "0010010" when "0101",
-                            "0000010" when "0110",
-                            "1111000" when "0111",
-                            "0000000" when "1000",
-                            "0010000" when "1001",
-                            "1111111" when others;
-        end Behavioral;
-    \end{lstlisting}
-
-    Código del módulo codificador del comparador a 7 segmentos
-    \begin{lstlisting}[language=VHDL]
-        library IEEE;
-        use IEEE.STD_LOGIC_1164.ALL;
-        
-        entity comp_to_7seg is
-            port(
-                m : in std_logic_vector (2 downto 0);        -- L E G
-                segments : out std_logic_vector (6 downto 0) -- G F E D C B A
-            );
-        end comp_to_7seg;
-        
-        architecture Behavioral of comp_to_7seg is
-        
-        begin
-            with m select
-            segments <= "1000111" when "100",
-                        "0000110" when "010",
-                        "0000010" when "001",
-                        "1111111" when others;
-        end Behavioral;
-    \end{lstlisting}
-
-    Código del módulo para desplegar en el 7 segmentos
-    \begin{lstlisting}[language=VHDL]
-        library IEEE;
-        use IEEE.STD_LOGIC_1164.ALL;
-        use IEEE.STD_LOGIC_UNSIGNED.ALL;
-        
-        entity display_7seg_multiplexer is
-            port(
-                clk100M : in std_logic;
-                display0, display1, display2 : in std_logic_vector (6 downto 0);
-                anodes : out std_logic_vector (3 downto 0);
-                cathodes : out std_logic_vector (6 downto 0)
-            );
-        end display_7seg_multiplexer;
-        
-        architecture Behavioral of display_7seg_multiplexer is
-            signal counter : integer range 0 to 500000;
-            signal selector : std_logic_vector (1 downto 0) := "00";
-        begin
-        clk50Hz:
-            process(clk100M)
-            begin
-                if (rising_edge(clk100M)) then
-                    if (counter < 500000) then
-                        counter <= counter + 1;
-                    else
-                        selector <= selector + 1;
-                        counter <= 0;
-                    end if;
-                end if;
-            end process;
-            
-            with selector select
-                anodes <= "1011" when "01",
-                          "1101" when "10",
-                          "1110" when "11",
-                          "1111" when others;
-            with selector select
-                cathodes <= display2  when "01",
-                            display1  when "10",
-                            display0  when "11",
-                            "1111111" when others; 
-        end Behavioral;        
-    \end{lstlisting}
-
-    Código top conjuntador de módulos
-    \begin{lstlisting}[language=VHDL]
-        library IEEE;
-        use IEEE.STD_LOGIC_1164.ALL;
-        
-        entity arithmetic_system is
-            port(
-                clk : in std_logic;
-                a, b : in std_logic_vector (3 downto 0);
-                sel : in std_logic_vector (1 downto 0);
-                cathodes : out std_logic_vector (6 downto 0);
-                anodes : out std_logic_vector (3 downto 0)
-            );
-        end arithmetic_system;
-        
-        architecture Behavioral of arithmetic_system is
-            signal comp : std_logic_vector (2 downto 0);
-            signal a0, a1, b0, b1, r0, r1: std_logic_vector (3 downto 0);
-            signal sum_a, sum_b, sum0, sum1: std_logic_vector (4 downto 0);
-            signal a1a0, b1b0 : std_logic_vector (7 downto 0);
-            signal sub : std_logic_vector (8 downto 0);
-            signal display0, display1, display2, dr0, dr1, dcom: std_logic_vector (6 downto 0);
-        begin
-        U0: entity work.bcd_adder port map(a => a, b => "0000", c_in => '0', s => sum_a);
-        U1: entity work.bcd_adder port map(a => b, b => "0000", c_in => '0', s => sum_b);
-            a0 <= sum_a(3 downto 0);
-            a1 <= "000" & sum_a(4);
-            b0 <= sum_b(3 downto 0);
-            b1 <= "000" & sum_b(4);
-        U2: entity work.bcd_adder port map(a => a0, b => b0, c_in => '0', s => sum0);
-        U3: entity work.bcd_adder port map(a => a1, b => b1, c_in => sum0(4), s => sum1);
-            a1a0 <= a1 & a0;
-            b1b0 <= b1 & b0;
-        U4: entity work.bcd_subtractor port map(a => a1a0, b => b1b0, s => sub);
-        U5: entity work.comparator port map(a => a, b => b, l => comp(2), e => comp(1), g => comp(0));
-            r0 <= sum0(3 downto 0) when sel(0) = '0' else sub(3 downto 0);
-            r1 <= sum1(3 downto 0) when sel(0) = '0' else sub(7 downto 4);
-        U6: entity work.bcd_to_7seg port map(bcd => r0, segments => dr0);
-        U7: entity work.bcd_to_7seg port map(bcd => r1, segments => dr1);
-        U8: entity work.comp_to_7seg port map(m => comp, segments => dcom);
-            with sel select
-                display0 <= dr0 when "00",
-                            dr0 when "01",
-                            dcom when "10",
-                            "1111111" when others;
-            with sel select
-                display1 <= dr1 when "00",
-                            dr1 when "01",
-                            "1111111" when others;
-            with sel select
-                display2 <= not(sum1(4)) & "111111" when "00",
-                            not(sub(8)) & "111111" when "01",
-                            "1111111" when others;
-        U9: entity work.display_7seg_multiplexer port map(clk100M => clk, display0 => display0, display1 => display1,
-            display2 => display2, anodes => anodes, cathodes => cathodes);
-        end Behavioral;
-    \end{lstlisting}
-
+    
 \end{document}
