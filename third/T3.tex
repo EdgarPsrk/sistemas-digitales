@@ -87,7 +87,8 @@
     \begin{figure}[H]
         \centering
         \includegraphics[width=\textwidth]{\esquema}
-        \caption{Esquematico del sistema}\label{fig:top-level}
+        \caption{Esquematico del sistema}
+        \label{fig:top-level}
     \end{figure}
 
     \section{Experimentos}
@@ -98,20 +99,22 @@
     Poder dividir el sistema en módulos o entidades más pequeñas facilita el diseño, la depuración y la reutilización de código y debido a que no tenemos acceso a la tarjeta la simulación es una parte esencial del proceso de diseño en VHDL, aunque también se debe tomar en cuenta que antes de implementar el diseño en hardware, es crucial realizar una simulación exhaustiva para verificar su funcionalidad y detectar posibles errores, además la implementación en hardware a través de herramientas como Vivado implica la síntesis y optimización del diseño. Esto se traduce en la generación de un circuito físico a partir del código VHDL con la optimización de recursos como área y velocidad, por último la transición de un diseño físico a un diseño digital implica un cambio de paradigma importante, que nos permite una mayor flexibilidad y la posibilidad de realizar cambios más rápidamente en el diseño sin modificar hardware físico.    
 
     \appendix
-    \section*{Apéndice A:Imagenes de la simulación}
+    \section*{Apéndice A: Imagenes de la simulación}
     \begin{figure}[H]
         \centering
         \includegraphics[width=\textwidth,height=12cm,keepaspectratio]{\var}
-        \caption{Variables y señales del archivo top}\label{fig:variables}
+        \caption{Variables y señales del archivo top}
+        \label{fig:variables}
     \end{figure}
 
     \begin{figure}[H]
         \centering
         \includegraphics[width=\textwidth]{\imgb}
-        \caption{Señales de salida}\label{fig:signal}
+        \caption{Señales de salida}
+        \label{fig:signal}
     \end{figure} 
 
-    \section*{Apéndice B:Codigo VHDL}
+    \section*{Apéndice B: Codigo VHDL}
     Código del módulo sumador
     \begin{lstlisting}[language=VHDL]
         library IEEE;
