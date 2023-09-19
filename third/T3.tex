@@ -24,7 +24,11 @@
 
 %variables de color
 % \definecolor{greenPortada}{HTML}{69A84F}
-\definecolor{lineCabecera}{HTML}{5DADE2}
+%\definecolor{lineCabecera}{HTML}{5DADE2}
+\definecolor{lineCabecera}{HTML}{008080}
+%\definecolor{lineCabecera}{HTML}{FF4500}
+
+
 
 %cabecera
 \setlength{\headheight}{40pt}
@@ -39,11 +43,14 @@
 \newcommand{\var}{img/jflap.png}
 \newcommand{\imgA}{img/dt1.png}
 \newcommand{\imgB}{img/dt2.png}
+\newcommand{\imgC}{img/secretCode.png}
+
 \newcommand{\codeA}{code/clock_pulse.vhd}
 \newcommand{\codeB}{code/debounce.vhd}
 \newcommand{\codeC}{code/doorlock.vhd}
 \newcommand{\codeD}{code/frequency_divider.vhd}
 \newcommand{\codeE}{code/system.vhd}
+
 
 
 
@@ -73,7 +80,7 @@
     frame=single,
 }
 
-\title{Sistema en VHDL con suma, resta y comparación de 2 palabras a 4 bits}
+\title{Automata en VHDL.\\Control de un puerta a través de un código}
 \author{Universidad Nacional Autónoma de México.\\Facultad de Estudios Superiores Cuatitlán.\\Palomino Alfonso Edgar.}
 \date{\today}
 
@@ -84,45 +91,64 @@
     \vspace{2ex}
 
     \section{Introducción.}
-    En el campo de la ingeniería y la informática, las operaciones aritméticas fundamentales de suma, resta y comparación desempeñan un papel esencial en una amplia gama de aplicaciones. En este proyecto, presentaremos el diseño y la implementación de un sistema digital en VHDL que realiza estas operaciones con palabras de 4 bits. Tanto el sumador como el restador se basan en un diseño tradicional de acarreo completo, mientras que el comparador utiliza un enfoque de comparación de magnitud de 4 bits.A comparación de la simulación en este sistema tiene la capacidad para manejar números en su totalidad, incluyendo valores negativos. A diferencia del diseños pasado que restringen las operaciones solo a números positivos, nuestro sistema en VHDL permite operar con números positivos y negativos, también el comparador tiene la tarea de determinar si dos números son iguales, si uno es mayor que el otro o si uno es menor que el otro. A lo largo de este informe, profundizaremos en el diseño y el funcionamiento de estas operaciones cruciales en el contexto de sistemas digitales basados en VHDL.
+    El control de acceso es un aspecto fundamental en muchos sistemas o aplicaciones modernas. En este contexto, la implementación de un sistema en VHDL utilizando Vivado para controlar el acceso a una puerta mediante un código secreto es una planteamiento interesante a resolver. Este pequeño proyecto busca combinar la flexibilidad con la potencia de la programación en VHDL, así como la versatilidad de Vivado para crear un sistema que garantice la seguridad de una puerta. Esto se busca a través de explorar en detalle el diseño de un autómata en VHDL que será responsable de gestionar el acceso a una puerta. Para ello, utilizaremos un código secreto que los usuarios autorizados deberán ingresar correctamente para que la puerta se abra (esto se indicará a través de un led). Este proyecto se enfocará en los aspectos clave del diseño, incluyendo la descripción del sistema en VHDL además de la simulación en una tarjeta Basys 3 utilizando Vivado.
+
+    En este documento, abordaremos los siguientes puntos clave: presentaremos el diseño en VHDL de un autómata que gestione este acceso, detallando la lógica del código secreto además de las acciones en caso de éxito o fracaso. Discutiremos la relevancia de la simulación y verificación para garantizar la seguridad del sistema. Finalmente, resumimos los resultados, destacando las ventajas así como los desafíos, considerando posibles mejoras futuras.
+
     
     \section{Descripción del método.}
-    La solución propuesta para el sistema consiste en una entrada binaria a un sumador completo de 4 bits, el cual produce una salida en formato \emph{BCD}. Esto es necesario ya que se requiere pasarlo a un formato BCD para mostrarlo en tres displays de 7 segmentos. Se condiciona la salida de este sumador de tal manera que si es menor que nueve, se le agregan ceros para tener 8 bits en la salida (4 bits para cada display de 7 segmentos). En cualquier otro caso, se verifica que la salida no sea mayor que nueve para asegurar una salida \emph{BCD válida}. Si no se cumple esta condición, se le suman 6 en binario hasta obtener un BCD válido. Una vez que esto se cumple, se pueden segmentar las combinaciones necesarias en 4 bits para su representación en los displays de 7 segmentos.
-    La resta presenta el problema de que si se requiere representar números negativos de 2 dígitos decimales, se necesitaría un display adicional para representar el signo, lo cual se contempla en este sistema. Entonces, si $x > y$, se realiza la resta y se representa de la misma manera que en la suma, en caso contrario se realiza el complemento a 2 para obtener el valor correspondiente a la resta verificando que el resultado sea menor a 10, en este caso el tercer display mostrará el signo para el resultado. 
-    Para el comparador, se necesita un cambio ligero en la lógica, ya que debe mostrar \emph{'G'} si $x > y$, \emph{'E'} si $x = y$ y \emph{'L'} $si x < y$. Por lo tanto, para cada caso se debe proporcionar una representación diferente a la suma y resta. Esto implica que en el decodificador de 7 segmentos se deben restringir tres combinaciones para realizar esta representación. Esto se abordará dejando las letras necesarias utilizando diferentes codificadores.
-    La elección de la operación necesaria se realiza mediante un multiplexor. Si configuramos el multiplexor en 01, se realizará la suma de las entradas; si configuramos en 10, obtendremos la resta. Por último, el bit más significativo es vital para la comparación. Si configuramos el multiplexor en $x1$, se generará la comparación, teniendo como resultado la figura~\ref{fig:top-level}.
+    La metodología de este sistema es poco complicada, teniendo un grado de mayor dificultad proporcionar las salidas y entradas correctas para enlazar los código entre los módulos para una única salida.
+    Abordando los módulos en el orden que me parece adecuado, podemos considerara que se requiere realizar un prescaler para que los cambios del reloj al leer los pulsos no sean muy rápidos, lo cual nos da la holgura necesaria en los módulos para leer de manera correcta todas las señales, generando las salidas de una manera satisfactoria. El módulo de “anti-rebote” obtiene mediante el módulo principal SYSTEM unos retrasos, que se verifican en el módulo de pulsos de reloj, el cual tiene como función principal, asegurarse de que los 3 retrasos se den sobre el reloj del preescaler, así los botones utilizados para las entradas quedan condicionados,  para que solo un señal de pulso se tome en cuenta, pasando el primer pulso entre los 3 retrasos, además se condiciona esta salida para verificar que todos sean iguales, generando de manera satisfactoria un solo pulso desde los botones de entrada, también en este módulo es donde se realiza la codificación, ya que se pasan los valores de los botones a los valores que utilizaremos  sobre el código final.
+    Contamos con el módulo de las máquinas de estado que es donde se manejan las situaciones posible en base al diseño principal como en la figura~\ref{fig:estados}, el cual consiste en colocar  digamos 2 “caminos” diferentes por lo cuales se puede llegar a una salida, esto debido a el planteamiento del problema donde se requiere que la salida se de hasta tener las 4 iteraciones que requiere el dígito para ser correcto, que si se considera, esto tiene sentido ya que al ser un sistema de seguridad no debería de dar pista de donde están los errores, así que se limita a tener una salida de \emph{aprobado} o \emph{fallo} en cada iteración completa del sistema, así que si pasamos por los estados $ \{q_0,q_1,q_2,q_3\} $ generamos un valor correcto y obtendremos una señal de \emph{aprobado}, mientras que si erramos algun digito, podemos pasar por los estados $\{q_4,q_5,q_6\}$, que manejan los errores para completar la iteración de 4 digitos, así mismo tenemos una particularidad que es que los valores intermedios pasan del camino correcto al manejo de errores en los estados $\{q_0,q_1,q_2\}$, pero en el estado $q_3$, el error se maneja sobre el mismo estado dando salida a diferentes valores, si el codigo es correcto activaremso la señal de \emph{aprobado}, mientras que si el codigo esta mal sobre ese ultimo dígito daremos paso a  la salida de \emph{fallo} , por ultimo como se dijo el modulo de \emph{system}, une las señales pasando el reloj principal al preescaler, la salida de este modulo al modulo de pulsos e reloj, que a su vez da parte de las entradas al modulo de entirrebote, tambien se pasan los valores de los botones pulsados, asegurando la lectura de un solo valor y pasando los valores de estos a el modulo de las maquinas de estado, el cual como se dijo da paso a la señales aprobado o fallo, dichas señales se puede interpretar de manera fisica sobre la tarjeta al ver el $led_0$ para fallo y $led_1$ para aprobado, el valor del codigo a verificar es determinado por el vector \emph{secret\_code} que se lee sobre este mismo modulo. dicho valor se obtiene a través de los switch 0 a 7 de la tarjeta \emph{Basys 3}.
+
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=\textwidth,keepaspectratio]{\esquema}
-        \caption{Esquematico del sistema}
-        \label{fig:top-level}
+        \includegraphics[width=\textwidth,height=10cm, keepaspectratio]{\var}
+        \caption{Diseño de la maquina de estados}
+        \label{fig:estados}
     \end{figure}
 
     \section{Experimentos}
-    Las salidas del diseño se dejan en el apéndice A, donde se pueden analizar las variables que se muestran del archivo top en la figura~\ref{fig:variables}, donde se aprecian distintas señales pero solo no interesan las correspondientes a los display, ya que estos valores son las representaciones de la salida, o los valores que deberíamos tener, debido a que el selector no está dentro de ninguno de los casos donde se mande la salida de ninguna de las operaciones podemos parecia en la figura~\ref{fig:signal}. que todos los segmentos están en alto, es decir apagados, además podemos apreciar cuales son las valores de las 2 entradas correspondientes que son $a = 10$ y $b = 5$, si generamos la conversión de los valores de los display, correspondientes a 12 para \emph{display0} y 79 para el \emph{display1} podemos verificar que tenemos 1 y 5 dando como resultado la suma de las dos entradas en codigo BCD, ademas podemos notar que el \emph{display2} está apagado, de esta manera puedes verificar que la salida del sistema es correcta, podemos jugar con el archivo test bench para realizar toda las pruebas con las combinaciones generando las salidas correctas en los todos los display.
+    La imagen de las salidas se dejan en el apéndice A con la figura~\ref{fig:analisis}, donde se pueden ver las diferentes señales que comprueban el correcto funcionamiento del sistema.
+    Comenzando con la figura~\ref{fig:secretCode}, podemos apreciar que el valor del SECRET CODE está dispuesto a 24, pero en base hexadecimal, lo que corresponde en binario a \emph{100100}, pero como se aprecia, el valor del arreglo es de 8 bits, así que es \emph{00100100}, como se dijo se toman los valores para comparar desde los switches 1 a 4, con lo que el primer conjunto de 2-bits da el valor de el primer \emph{“dígito”} $00$, después $01$, despues $10$ y por ultimo $00$, así que el código secreto será \emph{0120}, de esta manera podemos verificar que nuestro sistema funciona al pasarle dichos valores y tener un pulso en alto en la señal denominada \emph{pass}, mientras que al pasar otro valor obtenemos un pulso en alto en la señal denominada \emph{fail}, podemos notar también la configuración dispuesta de los botones de la tarjeta, donde $001$ corresponde a un \emph{dígito} a la salida de $0$, un $010$, corresponde a $1$ y $100$, corresponde a el dígito $2$, por eso podemos observar para el código secreto los valores de entrada de \emph{1241}, lo cual corresponde a la codificación que se ha realizado, de esta manera podemos verificar que todo el sistema es congruente, podemos pasar mas valores y jugar con ellos para analizar y determinar la funcionalida del sistema, cosa que se hizo y se deja como evidencia, solo los valores de un caso correcto y una falla, repetida sobre las iteraciones del sistema.
+    
 
     \section{Conclusión}
-    El proceso de crear un diseño digital utilizando VHDL implica un aprendizaje significativo. Se requiere comprender la sintaxis de VHDL, los conceptos de diseño digital y cómo implementarlos en un entorno como Vivado, creando un sistema que realiza múltiples operaciones (suma, resta y comparación), destacando la importancia del diseño modular en VHDL. 
-    Poder dividir el sistema en módulos o entidades más pequeñas facilita el diseño, la depuración y la reutilización de código y debido a que no tenemos acceso a la tarjeta la simulación es una parte esencial del proceso de diseño en VHDL, aunque también se debe tomar en cuenta que antes de implementar el diseño en hardware, es crucial realizar una simulación exhaustiva para verificar su funcionalidad y detectar posibles errores, además la implementación en hardware a través de herramientas como Vivado implica la síntesis y optimización del diseño. Esto se traduce en la generación de un circuito físico a partir del código VHDL con la optimización de recursos como área y velocidad, por último la transición de un diseño físico a un diseño digital implica un cambio de paradigma importante, que nos permite una mayor flexibilidad y la posibilidad de realizar cambios más rápidamente en el diseño sin modificar hardware físico.    
+    Este proyecto ha logrado el objetivo de crear un sistema de control de acceso seguro y eficiente mediante la combinación de VHDL en Vivado. Aunque la metodología puede parecer compleja en un principio, la modularidad de los componentes ha facilitado su desarrollo, así como el mantenimiento que se le pueda dar. Además, el sistema se ha diseñado teniendo en cuenta la seguridad y la usabilidad, lo que puede llevarlo a escalar a una solución sólida para el control de acceso a una puerta con código secreto. Como futuras mejoras, se podrían explorar posibilidades de la integración con sistemas de control más amplios, hemos logrado desarrollar un diseño modular, cuya estructura de módulos, que incluye el prescaler, el anti-rebote y las máquinas de estado, ha demostrado ser altamente efectiva en el manejo de las señales de entrada, así como en la generación de salidas adecuadas que podemos verificar mediante los diagramas de tiempos obtenidos de la simulación, también la implementación de la lógica de codificación asegura una comparación precisa con el código secreto, mediante la configuración que se pueda dar mediante los switch. La retroalimentación visual mediante LED simplifica la interacción con el sistema. La gestión de errores y la separación de caminos para aprobación y fallo mejoran aún más la seguridad, ya que como se comentó, esto deja sin pistas de donde está en el error, si bien el sistema es pequeño se puede considerar que, teniendo esto como base se podría desarrollar un sistema más robusto bajo la misma línea de pensamiento, cosa que dependiendo de la metodología de desarrollo que se tenga puede cambiar o no, que en lo personal creo que cambiaria, pero seria interesante ver cuales son esos cambios a efectuar sobre el sistema y como la mayoría de cosas en ingenieria, saber que tanto estábamos cerca de algo viable o no.   
 
     \appendix
-    \section*{Apéndice A: Imagenes de la simulación}
+    \section*{Apéndice A:\\Imagenes de la simulación}
     \begin{figure}[H]
         \centering
-        \includegraphics[width=\textwidth,height=12cm,keepaspectratio]{\var}
-        \caption{Variables y señales del archivo top}
-        \label{fig:variables}
+        \includegraphics[width=\textwidth]{\esquema}
+        \caption{Diseño del Top-level}
+        \label{fig:top-level}
     \end{figure}
 
     \begin{figure}[H]
         \centering
         \includegraphics[width=\textwidth]{\imgB}
+        \caption{Señales de salida para el analisis}
+        \label{fig:analisis}
+    \end{figure} 
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{\imgC}
+        \caption{Valor del código secreto}
+        \label{fig:secretCode}
+    \end{figure} 
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{\imgA}
         \caption{Señales de salida}
         \label{fig:signal}
     \end{figure} 
 
-    \section*{Apéndice B: Codigo VHDL}
+    \section*{Apéndice B:\\Código VHDL}
+
     Código del módulo con pulsos de reloj verificados
     \lstinputlisting[language=VHDL]{\codeA}
 
